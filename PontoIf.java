@@ -45,11 +45,11 @@ public class PontoIf {
     static class Professor {
 
         boolean presente;
-
+        
         String cripUser;
         String userIDCripto;
         String senhaHash;
-
+        boolean logado;
         void criarConta() throws Exception {
             System.out.println("Digite seu nome:");
             String user = sc.nextLine();
@@ -92,16 +92,30 @@ public class PontoIf {
                 System.out.println("Login feito com sucesso");
                 String user = AESUtil.descriptografar(cripUser);
                 System.out.println("Olá " + user);
+                logado=true;
 
             } else {
                 System.out.println("Credenciais incorretas");
             }
         }
 
-        void baterPonto() throws Exception {
+        void baterPontoEntrada() throws Exception {if (!logado) {
+        System.out.println("Você precisa estar logado para bater o ponto!");
+        return;
+    }
             String user = AESUtil.descriptografar(cripUser);
             presente = true;
             System.out.println("Olá " + user + ", seu ponto foi batido");
+        }
+        void baterPontoSaida() throws Exception{
+            
+            if (!logado) {
+        System.out.println("Você precisa estar logado para bater o ponto!");
+        return;
+    }
+            String user = AESUtil.descriptografar(cripUser);
+            presente = true;
+            System.out.println("Até mais " + user + ", seu ponto foi batido");
         }
     }
 
@@ -109,6 +123,7 @@ public class PontoIf {
         Professor prof = new Professor();
         prof.criarConta();
         prof.entrar();
-        prof.baterPonto();
+        prof.baterPontoEntrada();
+        prof.baterPontoSaida();
     }
 }
