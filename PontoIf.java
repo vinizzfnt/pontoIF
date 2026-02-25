@@ -1,4 +1,5 @@
 import java.security.MessageDigest;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Scanner;
 import javax.crypto.Cipher;
@@ -45,85 +46,140 @@ public class PontoIf {
     static class Professor {
 
         boolean presente;
-        
+        boolean logado;
+
         String cripUser;
         String userIDCripto;
         String senhaHash;
-        boolean logado;
+
         void criarConta() throws Exception {
-            System.out.println("Digite seu nome:");
+            System.out.print("Digite seu nome: ");
             String user = sc.nextLine();
 
-            System.out.println("Digite seu ID:");
+            System.out.print("Digite seu ID: ");
             String userID = sc.nextLine();
 
-            System.out.println("Crie uma senha:");
+            System.out.print("Crie uma senha: ");
             String senha = sc.nextLine();
 
             presente = false;
+            logado = false;
 
             senhaHash = HashUtil.sha256(senha);
             cripUser = AESUtil.criptografar(user);
             userIDCripto = AESUtil.criptografar(userID);
 
-            System.out.println(cripUser);
-            System.out.println(userIDCripto);
-            System.out.println(senhaHash);
+            System.out.println("Conta criada com sucesso!");
         }
 
         void entrar() throws Exception {
-            System.out.println("Digite seu usuário:");
+            System.out.print("Digite seu usuário: ");
             String usuario = sc.nextLine();
 
-            System.out.println("Digite sua senha:");
+            System.out.print("Digite sua senha: ");
             String senha = sc.nextLine();
 
-            System.out.println("Digite seu ID:");
+            System.out.print("Digite seu ID: ");
             String id = sc.nextLine();
 
-            String usuarioCripto = AESUtil.criptografar(usuario);
             String hashSenha = HashUtil.sha256(senha);
-            String criptoID = AESUtil.criptografar(id);
 
-            if (usuarioCripto.equals(cripUser) &&
-                hashSenha.equals(senhaHash) &&
-                criptoID.equals(userIDCripto)) {
+            String userSalvo = AESUtil.descriptografar(cripUser);
+            String idSalvo = AESUtil.descriptografar(userIDCripto);
 
-                System.out.println("Login feito com sucesso");
-                String user = AESUtil.descriptografar(cripUser);
-                System.out.println("Olá " + user);
-                logado=true;
+            if (usuario.equals(userSalvo) &&
+                id.equals(idSalvo) &&
+                hashSenha.equals(senhaHash)) {
+
+                logado = true;
+                System.out.println("Login feito com sucesso!");
+                System.out.println("Olá " + userSalvo);
 
             } else {
-                System.out.println("Credenciais incorretas");
+                System.out.println("Credenciais incorretas!");
             }
         }
 
-        void baterPontoEntrada() throws Exception {if (!logado) {
-        System.out.println("Você precisa estar logado para bater o ponto!");
-        return;
-    }
-            String user = AESUtil.descriptografar(cripUser);
-            presente = true;
-            System.out.println("Olá " + user + ", seu ponto foi batido");
-        }
-        void baterPontoSaida() throws Exception{
-            
+        void baterPontoEntrada() throws Exception {
             if (!logado) {
-        System.out.println("Você precisa estar logado para bater o ponto!");
-        return;
-    }
-            String user = AESUtil.descriptografar(cripUser);
+                System.out.println("Faça login primeiro!");
+                return;
+            }
+
             presente = true;
-            System.out.println("Até mais " + user + ", seu ponto foi batido");
+            String user = AESUtil.descriptografar(cripUser);
+            LocalDateTime horario = LocalDateTime.now();
+
+            System.out.println("Entrada registrada: " + user + " -> " + horario);
+        }
+
+        void baterPontoSaida() throws Exception {
+            if (!logado) {
+                System.out.println("Faça login primeiro!");
+                return;
+            }
+
+            presente = false;
+            String user = AESUtil.descriptografar(cripUser);
+            LocalDateTime horario = LocalDateTime.now();
+
+            System.out.println("Saída registrada: " + user + " -> " + horario);
         }
     }
 
     public static void main(String[] args) throws Exception {
+
         Professor prof = new Professor();
-        prof.criarConta();
-        prof.entrar();
-        prof.baterPontoEntrada();
-        prof.baterPontoSaida();
+        char op, ponto;
+
+        do {
+            System.out.println("\n1- Criar conta");
+            System.out.println("2- Entrar");
+            System.out.println("3- Bater ponto");
+            System.out.println("4- Sair");
+            System.out.print("Opção: ");
+
+            op = sc.next().charAt(0);
+            sc.nextLine();
+
+            switch (op) {
+
+                case '1':
+                    prof.criarConta();
+                    break;
+
+                case '2':
+                    prof.entrar();
+                    break;
+
+                case '3':
+                    System.out.println("1- Entrada");
+                    System.out.println("2- Saída");
+                    System.out.print("Opção: ");
+
+                    ponto = sc.next().charAt(0);
+                    sc.nextLine();
+
+                    switch (ponto) {
+                        case '1':
+                            prof.baterPontoEntrada();
+                            break;
+                        case '2':
+                            prof.baterPontoSaida();
+                            break;
+                        default:
+                            System.out.println("Opção inválida!");
+                    }
+                    break;
+
+                case '4':
+                    System.out.println("Saindo...");
+                    break;
+
+                default:
+                    System.out.println("Opção inválida!");
+            }
+
+        } while (op != '4');
     }
 }
